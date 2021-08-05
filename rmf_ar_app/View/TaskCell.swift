@@ -21,7 +21,7 @@ class TaskCell: UICollectionViewCell {
     @IBOutlet weak var startTimeText: UILabel!
     @IBOutlet weak var endTimeText: UILabel!
     
-    func populateFromTask(task: TaskSummary) {
+    func populateFromTask(task: TaskProgress) {
         
         layer.borderWidth = 1
         layer.borderColor = UIColor.lightGray.cgColor
@@ -30,34 +30,51 @@ class TaskCell: UICollectionViewCell {
         progressBar.setProgress(0, animated: false)
         progressBar.trackTintColor = UIColor.systemGray4
         
-        switch task.state {
-        case "Completed":
-            progressBar.trackTintColor = UIColor.systemGreen
-            progressText.text = "Completed"
-        case "Delayed":
-            progressBar.trackTintColor = UIColor.systemYellow
-            progressText.text = "Delayed"
-        case "Cancelled":
-            progressBar.trackTintColor = UIColor.white
-            progressText.text = "Cancelled"
-        case "Failed":
-            progressBar.trackTintColor = UIColor.red
-            progressText.text = "Failed"
-        default:
+        var taskState = ""
+        
+        switch task.taskSummary.state {
+        case .queued:
+            progressBar.trackTintColor = UIColor.black
+            progressText.text = "Queued"
+            taskState = "Queued"
+        
+        case .active:
             progressBar.setProgress((progressValue ?? 0) / 100, animated: false)
             progressText.text = task.progress
+            taskState = "Active"
+            
+        case .completed:
+            progressBar.trackTintColor = UIColor.systemGreen
+            progressText.text = "Completed"
+            taskState = "Completed"
+        
+        case .failed:
+            progressBar.trackTintColor = UIColor.red
+            progressText.text = "Failed"
+            taskState = "Failed"
+            
+        case .canceled:
+            progressBar.trackTintColor = UIColor.white
+            progressText.text = "Cancelled"
+            taskState = "Cancelled"
+            
+        case .pending:
+            progressBar.trackTintColor = UIColor.systemYellow
+            progressText.text = "Pending"
+            taskState = "Pending"
         }
         
+        
         progressText.sizeToFit()
-        taskIDText.text = task.taskId
-        detailsText.text = task.description
-        detailsText.sizeToFit()
-        robotText.text = task.robotName
-        taskTypeText.text = task.taskType
-        priorityText.text = String(task.priority)
-        taskStateText.text = task.state
-        startTimeText.text = String(task.startTime)
-        endTimeText.text = String(task.endTime)
+        taskIDText.text = task.taskSummary.taskId
+        detailsText.text = task.taskSummary.status
+//        detailsText.sizeToFit()
+        robotText.text = task.taskSummary.robotName
+        taskTypeText.text = task.taskSummary.taskProfile.description.taskType.getTaskName()
+        priorityText.text = String(task.taskSummary.taskProfile.description.priority.value)
+        taskStateText.text = taskState
+        startTimeText.text = String(task.taskSummary.startTime.sec)
+        endTimeText.text = String(task.taskSummary.endTime.sec)
         
     }
     

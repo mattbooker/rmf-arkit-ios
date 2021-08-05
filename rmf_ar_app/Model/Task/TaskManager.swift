@@ -92,22 +92,14 @@ class TaskManager {
         networkManager.sendPostRequest(urlString: URLConstants.SUBMIT_TASK, requestBody: request, responseBodyType: CreateTaskResponse.self) {
             responseResult in
             
-            var responseBody: CreateTaskResponse
-            
             // Check network was succesful
             switch responseResult {
             case .success(let data):
-                responseBody = data
+                completionHandler(true, data.taskId, "")
             case .failure(let e):
                 self.logger.error("\(e.localizedDescription)")
                 completionHandler(false, "", "\(e.localizedDescription)")
                 return
-            }
-            
-            if responseBody.errorMsg == "" {
-                completionHandler(true, responseBody.taskId, "")
-            } else {
-                completionHandler(false, responseBody.taskId, responseBody.errorMsg)
             }
         }
     }

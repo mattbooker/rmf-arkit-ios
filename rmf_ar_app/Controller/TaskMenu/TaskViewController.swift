@@ -149,7 +149,8 @@ extension TaskViewController: UICollectionViewDataSource {
         let selectedTask = self.taskManager.getTask(index: indexToCancel)
         
         // Cannot cancel a task that has ended
-        if selectedTask.done {
+        if selectedTask.state != TaskSummary.State.queued {
+            logger.info("\(String(reflecting: selectedTask.state)) is not a cancelable state")
             return
         }
         

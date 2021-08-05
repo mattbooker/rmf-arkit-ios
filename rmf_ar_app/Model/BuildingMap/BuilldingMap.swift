@@ -42,7 +42,10 @@ struct Edge: Codable {
 
 struct Param: Codable {
     let name: String
-    let type: String
-    let value: String
+    let type: Int
+    let valueInt: Int
+    let valueString: String
+    let valueFloat: Float
+    let valueBool: Bool
 }
 

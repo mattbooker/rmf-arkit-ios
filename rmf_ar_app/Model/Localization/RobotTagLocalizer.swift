@@ -48,7 +48,7 @@ class RobotTagLocalizer {
         switch arView.session.currentFrame?.camera.trackingState {
         case .normal:
             // Only consider robots that are tracked and not moving
-            let trackedRobots = robotsDict.filter { $0.value.isTracked && !$0.value.robotState.mode.contains("Moving") }
+            let trackedRobots = robotsDict.filter { $0.value.isTracked && ($0.value.robot.state.mode.mode != RobotMode.Mode.moving) }
             
             // Check if we are currently tracking any robots
             if trackedRobots.count == 0 {
@@ -62,9 +62,9 @@ class RobotTagLocalizer {
             })
             
             // Retrieve the most recently seen robot's state and its corresponding anchor
-            let robot = sortedRobots.first!.robotState
-            guard let anchor = arView.session.currentFrame?.anchors.first(where: {$0.name == robot.robotName}) else {
-                logger.error("Could not retrieve anchor associated with robot: \(robot.robotName)")
+            let robot = sortedRobots.first!.robot
+            guard let anchor = arView.session.currentFrame?.anchors.first(where: {$0.name == robot.name}) else {
+                logger.error("Could not retrieve anchor associated with robot: \(robot.name)")
                 return
             }
             
@@ -83,22 +83,22 @@ class RobotTagLocalizer {
     }
     
     // Sets the ARView world origin to be the world origin as used within the RMF system
-    func runLocalization(robot: RobotState, anchor: ARAnchor) {
+    func runLocalization(robot: Robot, anchor: ARAnchor) {
         logger.info("Beginning localization")
         
         // Get vector pointing into marker and remove any vertical motion from it
-        let yVec = -simd_float3(anchor.transform[1,0], 0, anchor.transform[1,2])
+        let yVec = -simd_float3(anchor.transform[1].x, 0, anchor.transform[1].z)
 
         // Calculate the rotations required to align the ARKit frame and RMF frame
         let rotationToAlignXYPlane = pointXAxisAt(at: yVec)
-        let rotationToAlignXAxis = Transform(pitch: 0, yaw: Float(robot.locationYaw), roll: 0).matrix.transpose
+        let rotationToAlignXAxis = Transform(pitch: 0, yaw: Float(robot.state.location.yaw), roll: 0).matrix.transpose
         let alignmentRotation = rotationToAlignXAxis * rotationToAlignXYPlane
         
         // Rotate the anchor to align its frame and then calculate the required translation so
         // that it is in the same position as the robot
         let rotatedAnchor = alignmentRotation.transpose * anchor.transform[3]
-        let dx = rotatedAnchor[0] - Float(robot.locationX)
-        let dy = rotatedAnchor[1] - Float(robot.locationY)
+        let dx = rotatedAnchor[0] - Float(robot.state.location.x)
+        let dy = rotatedAnchor[1] - Float(robot.state.location.y)
         let dz = rotatedAnchor[2] - ARConstants.Localization.MARKER_HEIGHT
 
         // Need to apply the rotation to the translation vector
@@ -110,21 +110,21 @@ class RobotTagLocalizer {
         arView.session.setWorldOrigin(relativeTransform: alignmentTransform)
         
         // Send a notification that the world origin was updated
-        let localizationData = ["levelName": robot.levelName]
+        let localizationData = ["levelName": robot.state.location.levelName]
         NotificationCenter.default.post(name: Notification.Name("setWorldOrigin"), object: nil, userInfo: localizationData)
     }
     
-    func runRelocalization(robot: RobotState, anchor: ARAnchor) {
+    func runRelocalization(robot: Robot, anchor: ARAnchor) {
 
         // Check that the robot state and anchor agree with positioning
-        let dx = anchor.transform[3].x - Float(robot.locationX)
-        let dy = anchor.transform[3].y - Float(robot.locationY)
+        let dx = anchor.transform[3].x - Float(robot.state.location.x)
+        let dy = anchor.transform[3].y - Float(robot.state.location.y)
         let positionError = sqrt(dx * dx + dy * dy)
         
         // The anchors y-axis points out of the marker so we invert it and find the angle it creates to get the yaw
-        let anchorYaw = atan2(-anchor.transform[1,1], -anchor.transform[1,0])
+        let anchorYaw = atan2(-anchor.transform[1].y, -anchor.transform[1].x)
         
-        let rotationError = anchorYaw - Float(robot.locationYaw)
+        let rotationError = anchorYaw - Float(robot.state.location.yaw)
         
         logger.debug("Relocalization: Position error = \(positionError) | Rotation error = \(rotationError)")
         
@@ -142,8 +142,8 @@ class RobotTagLocalizer {
             let alignmentRotation = Transform(pitch: 0, yaw: 0, roll: Float(rotationError)).matrix
             
             let rotatedAnchor = alignmentRotation.transpose * anchor.transform[3]
-            let dx = rotatedAnchor[0] - Float(robot.locationX)
-            let dy = rotatedAnchor[1] - Float(robot.locationY)
+            let dx = rotatedAnchor[0] - Float(robot.state.location.x)
+            let dy = rotatedAnchor[1] - Float(robot.state.location.y)
             let dz = rotatedAnchor[2] - ARConstants.Localization.MARKER_HEIGHT
             
             let alignmentTranslation = alignmentRotation * simd_float4([dx, dy, dz, 1])
