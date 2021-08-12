@@ -109,7 +109,7 @@ class RobotStateManager {
     
     //MARK: - Private Methods
     @objc private func updateRobotStates() {
-        self.networkManager.sendGetRequest(urlString: URLConstants.ROBOT_STATES, responseBodyType: RobotList.self) {
+        self.networkManager.sendGetRequest(urlString: URLConstants.ROBOT_STATES, responseBodyType: [Robot].self) {
             responseResult in
             
             var robotData: [Robot]
@@ -117,9 +117,9 @@ class RobotStateManager {
             // Check network was succesful
             switch responseResult {
             case .success(let data):
-                robotData = data.items
+                robotData = data
             case .failure(let e):
-                self.logger.error("\(e.localizedDescription)")
+               print("\(e.localizedDescription)")
                 return
             }
         
@@ -223,7 +223,7 @@ class RobotStateManager {
             if let taskEntity = uiEntity.findEntity(named: "assignments")?.findEntity(named: "Text")?.children.first as? ModelEntity {
                 var taskList: [String] = []
                 for task in trackingData.robot.tasks {
-                    taskList.append(task.taskSummary.taskId)
+                    taskList.append(task.summary.taskId)
                 }
                 
                 taskEntity.model?.mesh = .generateText("\(taskList)", extrusionDepth: 0.01, font: .init(name: "Helvetica", size: CGFloat(0.08))!)

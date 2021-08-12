@@ -12,7 +12,7 @@ class TaskManager {
     
     // MARK: - Instance Variables
     private var networkManager: NetworkManager
-    private var taskList: [TaskSummary] = []
+    private var taskList: [Task] = []
     private let taskListSemaphore = DispatchSemaphore(value: 1)
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "TaskManager")
@@ -22,7 +22,7 @@ class TaskManager {
         self.networkManager = networkManager
     }
     
-    func getTask(index: Int) -> TaskSummary {
+    func getTask(index: Int) -> Task {
         
         taskListSemaphore.wait()
         let copiedData = taskList[index]
@@ -40,7 +40,7 @@ class TaskManager {
     }
     
     func downloadTaskList() {
-        networkManager.sendGetRequest(urlString: URLConstants.TASK_LIST, responseBodyType: [TaskSummary].self) {
+        networkManager.sendGetRequest(urlString: URLConstants.TASK_LIST, responseBodyType: [Task].self) {
             [weak self] responseResult in
             
             guard let self = self else { return }

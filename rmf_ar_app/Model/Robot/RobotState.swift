@@ -13,16 +13,11 @@ struct TrackedRobot {
     var lastSeen = Date.distantPast
 }
 
-struct RobotList: Decodable {
-    let items: [Robot]
-    let totalCount: Int
-}
-
 struct Robot: Decodable {
     let fleet: String
     let name: String
     let state: RobotState
-    let tasks: [TaskProgress]
+    let tasks: [Task]
 }
 
 struct RobotState: Decodable {

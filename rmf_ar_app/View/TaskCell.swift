@@ -21,18 +21,18 @@ class TaskCell: UICollectionViewCell {
     @IBOutlet weak var startTimeText: UILabel!
     @IBOutlet weak var endTimeText: UILabel!
     
-    func populateFromTask(task: TaskProgress) {
+    func populateFromTask(task: Task) {
         
         layer.borderWidth = 1
         layer.borderColor = UIColor.lightGray.cgColor
         
-        let progressValue = Float(task.progress.replacingOccurrences(of: "%", with: ""))
+        let progressValue = Float(task.progress.status.replacingOccurrences(of: "%", with: ""))
         progressBar.setProgress(0, animated: false)
         progressBar.trackTintColor = UIColor.systemGray4
         
         var taskState = ""
         
-        switch task.taskSummary.state {
+        switch task.summary.state {
         case .queued:
             progressBar.trackTintColor = UIColor.black
             progressText.text = "Queued"
@@ -40,7 +40,7 @@ class TaskCell: UICollectionViewCell {
         
         case .active:
             progressBar.setProgress((progressValue ?? 0) / 100, animated: false)
-            progressText.text = task.progress
+            progressText.text = task.progress.status
             taskState = "Active"
             
         case .completed:
@@ -66,15 +66,15 @@ class TaskCell: UICollectionViewCell {
         
         
         progressText.sizeToFit()
-        taskIDText.text = task.taskSummary.taskId
-        detailsText.text = task.taskSummary.status
+        taskIDText.text = task.summary.taskId
+        detailsText.text = task.summary.status
 //        detailsText.sizeToFit()
-        robotText.text = task.taskSummary.robotName
-        taskTypeText.text = task.taskSummary.taskProfile.description.taskType.getTaskName()
-        priorityText.text = String(task.taskSummary.taskProfile.description.priority.value)
+        robotText.text = task.summary.robotName
+        taskTypeText.text = task.summary.taskProfile.description.taskType.getTaskName()
+        priorityText.text = String(task.summary.taskProfile.description.priority.value)
         taskStateText.text = taskState
-        startTimeText.text = String(task.taskSummary.startTime.sec)
-        endTimeText.text = String(task.taskSummary.endTime.sec)
+        startTimeText.text = String(task.summary.startTime.sec)
+        endTimeText.text = String(task.summary.endTime.sec)
         
     }
     

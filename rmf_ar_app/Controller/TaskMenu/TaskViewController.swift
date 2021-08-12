@@ -146,7 +146,7 @@ extension TaskViewController: UICollectionViewDataSource {
         // refers to correct task inside taskList since latest data may have shifted the taskList ordering
         stopUpdateTimer()
         
-        let selectedTask = self.taskManager.getTask(index: indexToCancel)
+        let selectedTask = self.taskManager.getTask(index: indexToCancel).summary
         
         // Cannot cancel a task that has ended
         if selectedTask.state != TaskSummary.State.queued {

@@ -8,14 +8,10 @@
 import Foundation
 
 // MARK: - Task Data
-struct TaskList: Decodable {
-    var items: [TaskProgress]
-    let totalCount: Int
-}
-
-struct TaskProgress: Decodable {
-    let taskSummary: TaskSummary
-    let progress: String
+struct Task: Decodable {
+    let taskId: String
+    let summary: TaskSummary
+    let progress: TaskProgress
 }
 
 struct TaskSummary: Decodable {
@@ -37,6 +33,10 @@ struct TaskSummary: Decodable {
         case canceled = 4
         case pending = 5
     }
+}
+
+struct TaskProgress: Decodable {
+    let status: String
 }
 
 struct TaskProfile: Decodable {
@@ -128,7 +128,7 @@ struct CreateLoopTaskRequest: CreateTaskRequest {
     }
     
     init(startTime: Int, priority: Int, numLoops: Int, startName: String, finishName: String) {
-        self.startTime = startTime
+        self.startTime = Int(Date().timeIntervalSince1970) + startTime
         self.priority = priority
         
         self.description = LoopDescription(numLoops: numLoops, startName: startName, finishName: finishName)
@@ -149,7 +149,7 @@ struct CreateDeliveryTaskRequest: CreateTaskRequest {
     }
     
     init(startTime: Int, priority: Int, pickupPlaceName: String, pickupDispenser: String, dropoffPlaceName: String, dropoffIngestor: String) {
-        self.startTime = startTime
+        self.startTime = Int(Date().timeIntervalSince1970) + startTime
         self.priority = priority
         
         self.description = DeliveryDescription(pickupPlaceName: pickupPlaceName, pickupDispenser: pickupDispenser, dropoffPlaceName: dropoffPlaceName, dropoffIngestor: dropoffIngestor)
@@ -167,7 +167,7 @@ struct CreateCleanTaskRequest: CreateTaskRequest {
     }
     
     init(startTime: Int, priority: Int, startWaypoint: String) {
-        self.startTime = startTime
+        self.startTime = Int(Date().timeIntervalSince1970) + startTime
         self.priority = priority
         
         self.description = CleanDescription(startWaypoint: startWaypoint)
